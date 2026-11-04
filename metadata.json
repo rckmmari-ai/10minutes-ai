@@ -1,0 +1,6 @@
+{
+  "name": "First 10 Minutes Football Prediction Model",
+  "description": "Proprietary quantitative sports analytics engine and statistical prediction platform for early match (00:00–09:59) football goal outcomes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
