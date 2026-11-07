@@ -12,6 +12,7 @@ import { MatchDetailModal } from './components/MatchDetailModal.tsx';
 import { PerformanceView } from './components/PerformanceView.tsx';
 import { VerificationView } from './components/VerificationView.tsx';
 import { SettingsView } from './components/SettingsView.tsx';
+import { LandingPage } from './components/LandingPage.tsx';
 import {
   AppSettings,
   Fixture,
@@ -23,6 +24,21 @@ import {
 export default function App() {
   const [activeTab, setActiveTab] = useState<'fixtures' | 'performance' | 'verification' | 'settings'>('fixtures');
   const [isDark, setIsDark] = useState<boolean>(true);
+
+  // Front door: the public page lives at "/", the analytics workspace at "/app".
+  const [route, setRoute] = useState<string>(() => window.location.pathname);
+
+  useEffect(() => {
+    const onPopState = () => setRoute(window.location.pathname);
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const navigateTo = (path: string) => {
+    window.history.pushState({}, '', path);
+    setRoute(path);
+    window.scrollTo({ top: 0 });
+  };
 
   // Fixtures & Filtering
   const [selectedDate, setSelectedDate] = useState<string>('2026-11-04');
@@ -281,6 +297,16 @@ export default function App() {
 
   const isEitherModelActive = settings?.enableEitherTeamWinModel ?? true;
 
+  if (!route.startsWith('/app')) {
+    return (
+      <LandingPage
+        isDark={isDark}
+        onToggleTheme={toggleTheme}
+        onEnterApp={() => navigateTo('/app')}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
       {/* Top Bar Contract (§2) */}
@@ -377,6 +403,12 @@ export default function App() {
       {/* Footer */}
       <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-4 text-xs text-slate-500 text-center">
         <span>First 10 Minutes Football Prediction Model · Interval [00:00 – 09:59] · All predictions strictly locked before match start</span>
+        <button
+          onClick={() => navigateTo('/')}
+          className="block mx-auto mt-1.5 text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 font-semibold cursor-pointer"
+        >
+          ← Back to 10minutes-ai
+        </button>
       </footer>
     </div>
   );
