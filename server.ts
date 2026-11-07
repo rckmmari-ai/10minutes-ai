@@ -12,6 +12,7 @@ import { footballApi } from './server/footballApi.ts';
 import {
   analyzeTeamHistoricalPerformance,
   calculateFirst10MinutesPrediction,
+  calculateEitherTeamWinPrediction,
   runModelVerificationSuite,
 } from './server/engine.ts';
 import { PredictionDetail } from './src/types/football.ts';
@@ -37,10 +38,21 @@ app.get('/api/fixtures', async (req: Request, res: Response) => {
     const comp = (req.query.competition as string) || 'all';
 
     const fixtures = await footballApi.fetchFixturesForDate(date, comp);
+    const settings = dbInstance.getSettings();
 
     // Attach locked prediction summary if already analyzed
     const fixturesWithSummary = fixtures.map((fix) => {
       const locked = dbInstance.getLockedPrediction(fix.id);
+      if (locked && !locked.eitherTeamWin && locked.homeAnalysis && locked.awayAnalysis) {
+        locked.eitherTeamWin = calculateEitherTeamWinPrediction(
+          locked.homeAnalysis,
+          locked.awayAnalysis,
+          locked.fixture?.competitionId || fix.competitionId || 'epl',
+          settings.eitherTeamWinThresholdPercent || 70
+        );
+        dbInstance.saveLockedPrediction(locked);
+      }
+
       return {
         ...fix,
         hasPrediction: Boolean(locked),
@@ -57,6 +69,7 @@ app.get('/api/fixtures', async (req: Request, res: Response) => {
               away10mScoringRate: locked.awayAnalysis.scoringPercent,
               away10mConcedingRate: locked.awayAnalysis.concedingPercent,
               sampleSize: `${locked.sampleReliability.homeSampleSize}/${locked.sampleReliability.awaySampleSize}`,
+              eitherTeamWin: locked.eitherTeamWin || null,
             }
           : null,
       };
@@ -94,6 +107,16 @@ app.get('/api/prediction/:fixtureId', async (req: Request, res: Response) => {
     // Check if prediction is already locked
     const existing = dbInstance.getLockedPrediction(fixtureId);
     if (existing) {
+      if (!existing.eitherTeamWin && existing.homeAnalysis && existing.awayAnalysis) {
+        const settings = dbInstance.getSettings();
+        existing.eitherTeamWin = calculateEitherTeamWinPrediction(
+          existing.homeAnalysis,
+          existing.awayAnalysis,
+          existing.fixture?.competitionId || fixture.competitionId || 'epl',
+          settings.eitherTeamWinThresholdPercent || 70
+        );
+        dbInstance.saveLockedPrediction(existing);
+      }
       return res.json({ success: true, prediction: existing, isLocked: true });
     }
 
@@ -137,6 +160,14 @@ app.get('/api/prediction/:fixtureId', async (req: Request, res: Response) => {
       goldenRuleApplied
     );
 
+    // Optional Model: Either team to win (Double Chance 12)
+    const eitherTeamWin = calculateEitherTeamWinPrediction(
+      homeAnalysis,
+      awayAnalysis,
+      fixture.competitionId,
+      settings.eitherTeamWinThresholdPercent || 70
+    );
+
     const predictionDetail: PredictionDetail = {
       fixtureId: fixture.id,
       fixture,
@@ -157,6 +188,7 @@ app.get('/api/prediction/:fixtureId', async (req: Request, res: Response) => {
       sampleReliability: result.sampleReliability,
       statisticalExplanation: result.statisticalExplanation,
       lockedAt: new Date().toISOString(),
+      eitherTeamWin,
     };
 
     // Save and lock prediction
@@ -180,6 +212,15 @@ app.post('/api/predict-all', async (req: Request, res: Response) => {
 
     for (const fix of fixtures) {
       let locked = dbInstance.getLockedPrediction(fix.id);
+      if (locked && !locked.eitherTeamWin && locked.homeAnalysis && locked.awayAnalysis) {
+        locked.eitherTeamWin = calculateEitherTeamWinPrediction(
+          locked.homeAnalysis,
+          locked.awayAnalysis,
+          locked.fixture?.competitionId || fix.competitionId || 'epl',
+          settings.eitherTeamWinThresholdPercent || 70
+        );
+        dbInstance.saveLockedPrediction(locked);
+      }
       if (!locked) {
         const isUcl = fix.competitionId === 'ucl' || fix.competition.toLowerCase().includes('champions league');
         const homeRaw = await footballApi.getOrFetchTeamHistory(
@@ -215,6 +256,14 @@ app.post('/api/predict-all', async (req: Request, res: Response) => {
           goldenRuleApplied
         );
 
+        // Optional Model: Either team to win
+        const eitherTeamWin = calculateEitherTeamWinPrediction(
+          homeAnalysis,
+          awayAnalysis,
+          fix.competitionId,
+          settings.eitherTeamWinThresholdPercent || 70
+        );
+
         locked = {
           fixtureId: fix.id,
           fixture: fix,
@@ -235,6 +284,7 @@ app.post('/api/predict-all', async (req: Request, res: Response) => {
           sampleReliability: result.sampleReliability,
           statisticalExplanation: result.statisticalExplanation,
           lockedAt: new Date().toISOString(),
+          eitherTeamWin,
         };
 
         dbInstance.saveLockedPrediction(locked);

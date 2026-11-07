@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AppSettings } from '../types/football.ts';
-import { Key, Database, Globe, Sparkles, CheckCircle2, ShieldAlert, Download, RefreshCw, Cpu } from 'lucide-react';
+import { Key, Database, Globe, Sparkles, CheckCircle2, ShieldAlert, Download, RefreshCw, Cpu, Zap } from 'lucide-react';
 
 interface SettingsViewProps {
   settings: AppSettings | null;
@@ -22,6 +22,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [uclGoldenRule, setUclGoldenRule] = useState<boolean>(
     settings?.championsLeagueGoldenRule ?? true
   );
+  const [enableEitherTeamWin, setEnableEitherTeamWin] = useState<boolean>(
+    settings?.enableEitherTeamWinModel ?? true
+  );
+  const [eitherTeamWinThreshold, setEitherTeamWinThreshold] = useState<number>(
+    settings?.eitherTeamWinThresholdPercent ?? 70
+  );
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleSave = (e: React.FormEvent) => {
@@ -29,6 +35,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     onUpdateSettings({
       apiProvider: selectedProvider,
       championsLeagueGoldenRule: uclGoldenRule,
+      enableEitherTeamWinModel: enableEitherTeamWin,
+      eitherTeamWinThresholdPercent: eitherTeamWinThreshold,
       apiKey: apiKeyInput.trim() || undefined,
     });
     setSaveSuccess(true);
@@ -152,26 +160,84 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         )}
 
         {/* Model Rules */}
-        <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-            Permanent Model Settings
-          </h4>
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={uclGoldenRule}
-              onChange={(e) => setUclGoldenRule(e.target.checked)}
-              className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500"
-            />
-            <div className="text-xs">
-              <span className="font-semibold text-slate-800 dark:text-slate-200 block">
-                Rule B: Champions League Golden Rule (Active by Default)
+        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-4">
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+              Permanent Model Settings
+            </h4>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={uclGoldenRule}
+                onChange={(e) => setUclGoldenRule(e.target.checked)}
+                className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500"
+              />
+              <div className="text-xs">
+                <span className="font-semibold text-slate-800 dark:text-slate-200 block">
+                  Rule B: Champions League Golden Rule (Active by Default)
+                </span>
+                <span className="text-slate-500 dark:text-slate-400 block mt-0.5">
+                  When analyzing UEFA Champions League fixtures, exclude previous UCL matches from the 10-match historical sample and substitute with domestic league/cup matches.
+                </span>
+              </div>
+            </label>
+          </div>
+
+          {/* Optional Model: Either Team to Win */}
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="p-1 rounded bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">
+                <Zap className="w-3.5 h-3.5" />
               </span>
-              <span className="text-slate-500 dark:text-slate-400 block mt-0.5">
-                When analyzing UEFA Champions League fixtures, exclude previous UCL matches from the 10-match historical sample and substitute with domestic league/cup matches.
-              </span>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Optional Model: Either Team to Win (Double Chance 12)
+              </h4>
             </div>
-          </label>
+
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={enableEitherTeamWin}
+                onChange={(e) => setEnableEitherTeamWin(e.target.checked)}
+                className="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500"
+              />
+              <div className="text-xs">
+                <span className="font-semibold text-slate-800 dark:text-slate-200 block">
+                  Enable Either Team to Win Analysis (Double Chance 12)
+                </span>
+                <span className="text-slate-500 dark:text-slate-400 block mt-0.5">
+                  Computes full-time bivariate Poisson outcome distribution combined with 10-match historical decisive frequency to calculate P(Home Win), P(Draw), P(Away Win), and P(Either Win = 1 - P(Draw)).
+                </span>
+              </div>
+            </label>
+
+            {enableEitherTeamWin && (
+              <div className="pl-6 pt-1 max-w-md space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">
+                    Recommendation Threshold:
+                  </span>
+                  <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                    {eitherTeamWinThreshold}% probability
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={60}
+                  max={85}
+                  step={1}
+                  value={eitherTeamWinThreshold}
+                  onChange={(e) => setEitherTeamWinThreshold(Number(e.target.value))}
+                  className="w-full accent-indigo-600 cursor-pointer"
+                />
+                <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                  <span>60% (Permissive)</span>
+                  <span>70% (Standard)</span>
+                  <span>85% (High threshold)</span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Buttons */}

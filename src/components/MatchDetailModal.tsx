@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PredictionDetail, HistoricalMatch } from '../types/football.ts';
-import { X, Target, Shield, Sparkles, CheckCircle2, AlertTriangle, Layers, Clock, TrendingUp } from 'lucide-react';
+import { X, Target, Shield, Sparkles, CheckCircle2, AlertTriangle, Layers, Clock, TrendingUp, Zap } from 'lucide-react';
 
 interface MatchDetailModalProps {
   predictionDetail: PredictionDetail | null;
@@ -32,6 +32,7 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
     sampleReliability,
     statisticalExplanation,
     lockedAt,
+    eitherTeamWin,
   } = predictionDetail;
 
   const activeAnalysis = activeTeamTab === 'home' ? homeAnalysis : awayAnalysis;
@@ -135,6 +136,120 @@ export const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
                   {goldenRuleExplanation} All historical UEFA Champions League matches were filtered out and substituted with verified domestic league and cup fixtures to avoid sample distortion.
                 </p>
               </div>
+            </div>
+          )}
+
+          {/* Optional Model: Either Team to Win (Double Chance 12) */}
+          {eitherTeamWin && (
+            <div className="p-4 rounded-xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/40 dark:bg-indigo-950/20 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-indigo-600/15 text-indigo-600 dark:text-indigo-400">
+                    <Zap className="w-4 h-4" />
+                  </span>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block">
+                      Optional Add-On Model
+                    </span>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      Full-Time Result: Either Team to Win (Double Chance 12)
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {eitherTeamWin.prediction === 'EITHER TEAM TO WIN' ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">
+                      <Zap className="w-3.5 h-3.5" />
+                      <span>EITHER WIN (12)</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      <span>DRAW RISK (X)</span>
+                    </span>
+                  )}
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    {eitherTeamWin.confidence} ({eitherTeamWin.confidenceScore}%)
+                  </span>
+                </div>
+              </div>
+
+              {/* Probabilities Distribution Bar */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs font-medium">
+                  <span className="text-indigo-700 dark:text-indigo-300 font-bold flex items-center gap-1">
+                    <span>P(Either Team to Win): {(eitherTeamWin.probabilityEitherWin * 100).toFixed(1)}%</span>
+                  </span>
+                  <span className="text-slate-500 text-[11px] font-mono">
+                    P(Draw): {(eitherTeamWin.probabilityDraw * 100).toFixed(1)}%
+                  </span>
+                </div>
+
+                {/* Triple Segment Bar: Home Win | Draw | Away Win */}
+                <div className="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden flex">
+                  <div
+                    className="bg-indigo-600 h-full transition-all duration-500"
+                    style={{ width: `${eitherTeamWin.probabilityHomeWin * 100}%` }}
+                    title={`Home Win: ${(eitherTeamWin.probabilityHomeWin * 100).toFixed(1)}%`}
+                  />
+                  <div
+                    className="bg-amber-400/80 h-full transition-all duration-500"
+                    style={{ width: `${eitherTeamWin.probabilityDraw * 100}%` }}
+                    title={`Draw: ${(eitherTeamWin.probabilityDraw * 100).toFixed(1)}%`}
+                  />
+                  <div
+                    className="bg-violet-500 h-full transition-all duration-500"
+                    style={{ width: `${eitherTeamWin.probabilityAwayWin * 100}%` }}
+                    title={`Away Win: ${(eitherTeamWin.probabilityAwayWin * 100).toFixed(1)}%`}
+                  />
+                </div>
+
+                {/* Sub-probabilities breakdown */}
+                <div className="flex items-center justify-between text-[11px] font-mono text-slate-600 dark:text-slate-400 pt-0.5">
+                  <span className="text-indigo-600 dark:text-indigo-400 font-semibold">
+                    1 (Home Win): {(eitherTeamWin.probabilityHomeWin * 100).toFixed(1)}%
+                  </span>
+                  <span className="text-amber-600 dark:text-amber-400 font-semibold">
+                    X (Draw): {(eitherTeamWin.probabilityDraw * 100).toFixed(1)}%
+                  </span>
+                  <span className="text-violet-600 dark:text-violet-400 font-semibold">
+                    2 (Away Win): {(eitherTeamWin.probabilityAwayWin * 100).toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Metrics & Rationale */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-indigo-100 dark:border-indigo-900/50 text-xs">
+                <div className="bg-white/60 dark:bg-slate-900/60 p-2 rounded-lg border border-indigo-100/60 dark:border-indigo-900/40">
+                  <span className="text-[10px] text-slate-400 uppercase font-semibold block">
+                    {homeTeam} Decisive Matches
+                  </span>
+                  <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200">
+                    {eitherTeamWin.homeDecisiveMatches}/10 Decisive ({eitherTeamWin.homeDrawCount} draws)
+                  </span>
+                </div>
+                <div className="bg-white/60 dark:bg-slate-900/60 p-2 rounded-lg border border-indigo-100/60 dark:border-indigo-900/40">
+                  <span className="text-[10px] text-slate-400 uppercase font-semibold block">
+                    {awayTeam} Decisive Matches
+                  </span>
+                  <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200">
+                    {eitherTeamWin.awayDecisiveMatches}/10 Decisive ({eitherTeamWin.awayDrawCount} draws)
+                  </span>
+                </div>
+                <div className="bg-white/60 dark:bg-slate-900/60 p-2 rounded-lg border border-indigo-100/60 dark:border-indigo-900/40">
+                  <span className="text-[10px] text-slate-400 uppercase font-semibold block">
+                    Mathematical Validation
+                  </span>
+                  <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                    P(1) + P(X) + P(2) = 100%
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic bg-white/40 dark:bg-slate-900/40 p-2.5 rounded-lg border border-indigo-100/50 dark:border-indigo-900/30">
+                "{eitherTeamWin.explanation}"
+              </p>
             </div>
           )}
 

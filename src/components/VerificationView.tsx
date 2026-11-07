@@ -24,17 +24,17 @@ export const VerificationView: React.FC<VerificationViewProps> = ({
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-              Automated 8-Point Model Verification Suite
+              Automated {report?.tests.length || 9}-Point Model Verification Suite
             </h2>
             {report?.allPassed && (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                 <Check className="w-3.5 h-3.5" />
-                <span>ALL 8 TESTS VERIFIED</span>
+                <span>ALL {report?.tests.length || 9} TESTS VERIFIED</span>
               </span>
             )}
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Section 13 validation protocol: Verifies 10-match hierarchy, strict 00:00–09:59 event extraction, Champions League Golden Rule, probability calibration, and performance metrics.
+            Section 13 validation protocol: Verifies 10-match hierarchy, strict 00:00–09:59 event extraction, Champions League Golden Rule, probability calibration, performance metrics, and optional Either Team to Win model.
           </p>
         </div>
 
@@ -44,7 +44,7 @@ export const VerificationView: React.FC<VerificationViewProps> = ({
           className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 rounded-lg transition-colors shadow-sm disabled:opacity-50 cursor-pointer whitespace-nowrap shrink-0"
         >
           <Play className={`w-3.5 h-3.5 fill-current ${isRunning ? 'animate-pulse' : ''}`} />
-          <span>{isRunning ? 'Running Test Suite...' : 'Execute All 8 Tests'}</span>
+          <span>{isRunning ? 'Running Test Suite...' : `Execute All ${report?.tests.length || 9} Tests`}</span>
         </button>
       </div>
 

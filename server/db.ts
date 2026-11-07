@@ -47,6 +47,8 @@ interface DatabaseSchema {
 function createInitialDatabase(): DatabaseSchema {
   const settings: AppSettings = {
     championsLeagueGoldenRule: true, // Default ON per Rule B
+    enableEitherTeamWinModel: true, // Optional Either Team to Win model
+    eitherTeamWinThresholdPercent: 70, // Default 70% threshold
     apiProvider: 'internal_verified',
     apiKeyConfigured: Boolean(process.env.FOOTBALL_API_KEY),
     autoRefreshEnabled: true,
@@ -2421,7 +2423,12 @@ class Database {
     try {
       if (fs.existsSync(DB_FILE)) {
         const raw = fs.readFileSync(DB_FILE, 'utf-8');
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        if (parsed.settings) {
+          parsed.settings.enableEitherTeamWinModel = parsed.settings.enableEitherTeamWinModel ?? true;
+          parsed.settings.eitherTeamWinThresholdPercent = parsed.settings.eitherTeamWinThresholdPercent ?? 70;
+        }
+        return parsed;
       }
     } catch (e) {
       console.error('Error reading database file, initializing fresh:', e);

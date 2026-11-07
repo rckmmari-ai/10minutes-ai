@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, CheckCircle2, ShieldAlert, Target, Shield, Clock } from 'lucide-react';
+import { Calendar, CheckCircle2, ShieldAlert, Target, Shield, Clock, Zap } from 'lucide-react';
 
 interface OverviewMetricsProps {
   date: string;
@@ -8,6 +8,9 @@ interface OverviewMetricsProps {
   goalPredictions: number;
   zeroZeroPredictions: number;
   insufficientDataCount: number;
+  showEitherTeamWinModel?: boolean;
+  eitherWinPredictions?: number;
+  drawRiskPredictions?: number;
 }
 
 export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({
@@ -17,9 +20,16 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({
   goalPredictions,
   zeroZeroPredictions,
   insufficientDataCount,
+  showEitherTeamWinModel = false,
+  eitherWinPredictions = 0,
+  drawRiskPredictions = 0,
 }) => {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
+    <div
+      className={`grid grid-cols-2 ${
+        showEitherTeamWinModel ? 'md:grid-cols-4 lg:grid-cols-7' : 'md:grid-cols-3 lg:grid-cols-6'
+      } gap-3 mb-6`}
+    >
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4">
         <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
           <Calendar className="w-3.5 h-3.5 text-slate-400" />
@@ -97,6 +107,21 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({
           Sample &lt; 6 matches
         </div>
       </div>
+
+      {showEitherTeamWinModel && (
+        <div className="bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-900/60 rounded-xl p-4">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 mb-1">
+            <Zap className="w-3.5 h-3.5 text-indigo-500" />
+            <span>Either Win (12)</span>
+          </div>
+          <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 font-mono tabular-nums">
+            {eitherWinPredictions}
+          </div>
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+            {drawRiskPredictions} draw risk matches
+          </div>
+        </div>
+      )}
     </div>
   );
 };

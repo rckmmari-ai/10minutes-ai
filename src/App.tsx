@@ -220,6 +220,13 @@ export default function App() {
     handleUpdateSettings({ championsLeagueGoldenRule: toggled });
   };
 
+  // Toggle Optional Either Team to Win Model directly from filter toolbar
+  const handleToggleEitherTeamWinModel = () => {
+    if (!settings) return;
+    const toggled = !settings.enableEitherTeamWinModel;
+    handleUpdateSettings({ enableEitherTeamWinModel: toggled });
+  };
+
   // Sync data & verify outcomes
   const handleSyncData = async () => {
     setIsSyncing(true);
@@ -265,6 +272,14 @@ export default function App() {
   const insufficientCount = fixtures.filter(
     (f) => f.predictionSummary?.confidence === 'INSUFFICIENT DATA'
   ).length;
+  const eitherWinCount = fixtures.filter(
+    (f) => f.predictionSummary?.eitherTeamWin?.prediction === 'EITHER TEAM TO WIN'
+  ).length;
+  const drawRiskCount = fixtures.filter(
+    (f) => f.predictionSummary?.eitherTeamWin?.prediction === 'DRAW RISK'
+  ).length;
+
+  const isEitherModelActive = settings?.enableEitherTeamWinModel ?? true;
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
@@ -290,6 +305,9 @@ export default function App() {
               goalPredictions={goalCount}
               zeroZeroPredictions={zeroZeroCount}
               insufficientDataCount={insufficientCount}
+              showEitherTeamWinModel={isEitherModelActive}
+              eitherWinPredictions={eitherWinCount}
+              drawRiskPredictions={drawRiskCount}
             />
 
             {/* Section 7.B: Competition Filter & Controls */}
@@ -302,6 +320,8 @@ export default function App() {
               onSearchChange={setSearchQuery}
               goldenRuleEnabled={settings?.championsLeagueGoldenRule ?? true}
               onToggleGoldenRule={handleToggleGoldenRule}
+              eitherTeamWinModelEnabled={isEitherModelActive}
+              onToggleEitherTeamWinModel={handleToggleEitherTeamWinModel}
               statusFilter={statusFilter}
               onStatusFilterChange={setStatusFilter}
             />
@@ -310,6 +330,7 @@ export default function App() {
             <PredictionTable
               fixtures={filteredFixtures}
               isLoading={isLoadingFixtures}
+              showEitherTeamWinModel={isEitherModelActive}
               onSelectFixture={handleSelectFixture}
               onGeneratePrediction={handleGenerateSinglePrediction}
             />

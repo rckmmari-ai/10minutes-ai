@@ -5,6 +5,7 @@ import { Target, Shield, AlertTriangle, ChevronRight, Sparkles, CheckCircle2 } f
 interface PredictionTableProps {
   fixtures: any[];
   isLoading: boolean;
+  showEitherTeamWinModel?: boolean;
   onSelectFixture: (fixture: Fixture) => void;
   onGeneratePrediction: (fixtureId: string) => void;
 }
@@ -12,6 +13,7 @@ interface PredictionTableProps {
 export const PredictionTable: React.FC<PredictionTableProps> = ({
   fixtures,
   isLoading,
+  showEitherTeamWinModel = false,
   onSelectFixture,
   onGeneratePrediction,
 }) => {
@@ -91,7 +93,17 @@ export const PredictionTable: React.FC<PredictionTableProps> = ({
               <th className="py-3 px-3 text-right whitespace-nowrap font-bold text-indigo-600 dark:text-indigo-400">
                 P(0–0)
               </th>
-              <th className="py-3 px-3 text-center whitespace-nowrap">Model Prediction</th>
+              <th className="py-3 px-3 text-center whitespace-nowrap">Model (00–09:59)</th>
+              {showEitherTeamWinModel && (
+                <>
+                  <th className="py-3 px-3 text-right whitespace-nowrap font-bold text-indigo-600 dark:text-indigo-400 border-l border-slate-200 dark:border-slate-800">
+                    P(Either 12)
+                  </th>
+                  <th className="py-3 px-3 text-center whitespace-nowrap">
+                    Either to Win (12)
+                  </th>
+                </>
+              )}
               <th className="py-3 px-3 whitespace-nowrap">Confidence</th>
               <th className="py-3 px-2 text-center whitespace-nowrap">Sample</th>
               <th className="py-3 px-3 text-right whitespace-nowrap">Analysis</th>
@@ -100,7 +112,7 @@ export const PredictionTable: React.FC<PredictionTableProps> = ({
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
             {isLoading ? (
               <tr>
-                <td colSpan={14} className="py-12 text-center text-slate-400">
+                <td colSpan={showEitherTeamWinModel ? 16 : 14} className="py-12 text-center text-slate-400">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
                     <span>Processing football fixtures and historical matrices...</span>
@@ -109,7 +121,7 @@ export const PredictionTable: React.FC<PredictionTableProps> = ({
               </tr>
             ) : fixtures.length === 0 ? (
               <tr>
-                <td colSpan={14} className="py-12 text-center text-slate-400">
+                <td colSpan={showEitherTeamWinModel ? 16 : 14} className="py-12 text-center text-slate-400">
                   No fixtures matching the selected date and filters.
                 </td>
               </tr>
@@ -194,6 +206,32 @@ export const PredictionTable: React.FC<PredictionTableProps> = ({
                           )}
                         </td>
 
+                        {/* Optional Model: Either Team to Win (Double Chance 12) */}
+                        {showEitherTeamWinModel && (
+                          <>
+                            <td className="py-3.5 px-3 text-right font-mono font-bold text-indigo-600 dark:text-indigo-400 tabular-nums border-l border-slate-100 dark:border-slate-800/80">
+                              {summary.eitherTeamWin
+                                ? `${(summary.eitherTeamWin.probabilityEitherWin * 100).toFixed(1)}%`
+                                : '—'}
+                            </td>
+                            <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                              {summary.eitherTeamWin ? (
+                                summary.eitherTeamWin.prediction === 'EITHER TEAM TO WIN' ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">
+                                    ⚡ EITHER WIN (12)
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                                    ⚠️ DRAW RISK (X)
+                                  </span>
+                                )
+                              ) : (
+                                <span className="text-slate-400 text-xs">—</span>
+                              )}
+                            </td>
+                          </>
+                        )}
+
                         {/* Confidence */}
                         <td className="py-3.5 px-3 whitespace-nowrap">
                           {getConfidenceBadge(summary.confidence)}
@@ -205,7 +243,7 @@ export const PredictionTable: React.FC<PredictionTableProps> = ({
                         </td>
                       </>
                     ) : (
-                      <td colSpan={9} className="py-3.5 px-3 text-center text-slate-400">
+                      <td colSpan={showEitherTeamWinModel ? 11 : 9} className="py-3.5 px-3 text-center text-slate-400">
                         <button
                           onClick={() => onGeneratePrediction(fixture.id)}
                           className="px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 border border-emerald-600/30 rounded-md cursor-pointer transition-colors"

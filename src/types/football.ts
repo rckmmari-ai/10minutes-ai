@@ -104,6 +104,23 @@ export interface Fixture {
   };
 }
 
+export type EitherWinOutcome = 'EITHER TEAM TO WIN' | 'DRAW RISK';
+
+export interface EitherTeamWinAnalysis {
+  probabilityHomeWin: number; // P(1)
+  probabilityDraw: number; // P(X)
+  probabilityAwayWin: number; // P(2)
+  probabilityEitherWin: number; // P(1 or 2) = P(1) + P(2) = 1 - P(Draw)
+  prediction: EitherWinOutcome;
+  confidence: ConfidenceLevel;
+  confidenceScore: number;
+  homeDecisiveMatches: number;
+  awayDecisiveMatches: number;
+  homeDrawCount: number;
+  awayDrawCount: number;
+  explanation: string;
+}
+
 export interface PredictionDetail {
   fixtureId: string;
   fixture: Fixture;
@@ -136,6 +153,7 @@ export interface PredictionDetail {
   };
   statisticalExplanation: string;
   lockedAt: string; // ISO timestamp when prediction was locked
+  eitherTeamWin?: EitherTeamWinAnalysis; // Optional Model: Either team to win
 }
 
 export interface PerformanceStats {
@@ -208,6 +226,8 @@ export interface ModelVerificationReport {
 
 export interface AppSettings {
   championsLeagueGoldenRule: boolean;
+  enableEitherTeamWinModel: boolean;
+  eitherTeamWinThresholdPercent: number;
   apiProvider: 'api_football' | 'football_data_org' | 'sportmonks' | 'internal_verified';
   apiKeyConfigured: boolean;
   autoRefreshEnabled: boolean;

@@ -10,6 +10,8 @@ interface FixtureFiltersProps {
   onSearchChange: (query: string) => void;
   goldenRuleEnabled: boolean;
   onToggleGoldenRule: () => void;
+  eitherTeamWinModelEnabled: boolean;
+  onToggleEitherTeamWinModel: () => void;
   statusFilter: string;
   onStatusFilterChange: (status: string) => void;
 }
@@ -32,12 +34,14 @@ export const FixtureFilters: React.FC<FixtureFiltersProps> = ({
   onSearchChange,
   goldenRuleEnabled,
   onToggleGoldenRule,
+  eitherTeamWinModelEnabled,
+  onToggleEitherTeamWinModel,
   statusFilter,
   onStatusFilterChange,
 }) => {
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 mb-6 space-y-4">
-      {/* Row 1: Date Segmented Picker + Team Search + Golden Rule Toggle */}
+      {/* Row 1: Date Segmented Picker + Team Search + Model Toggles */}
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
         {/* Date Selector */}
         <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg">
@@ -80,7 +84,7 @@ export const FixtureFilters: React.FC<FixtureFiltersProps> = ({
         </div>
 
         {/* Search */}
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
@@ -91,8 +95,9 @@ export const FixtureFilters: React.FC<FixtureFiltersProps> = ({
           />
         </div>
 
-        {/* Champions League Golden Rule Toggle (Rule B) */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Toggles Container */}
+        <div className="flex flex-wrap items-center gap-4 shrink-0">
+          {/* Champions League Golden Rule Toggle (Rule B) */}
           <label className="flex items-center gap-2 cursor-pointer select-none">
             <span className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-amber-500" />
@@ -105,7 +110,24 @@ export const FixtureFilters: React.FC<FixtureFiltersProps> = ({
                 onChange={onToggleGoldenRule}
                 className="sr-only peer"
               />
-              <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+              <div className="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
+            </div>
+          </label>
+
+          {/* Optional Model: Either Team to Win Toggle */}
+          <label className="flex items-center gap-2 cursor-pointer select-none pl-3 border-l border-slate-200 dark:border-slate-800">
+            <span className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-indigo-500" />
+              <span>Optional Model: Either Team to Win (12)</span>
+            </span>
+            <div className="relative inline-flex items-center">
+              <input
+                type="checkbox"
+                checked={eitherTeamWinModelEnabled}
+                onChange={onToggleEitherTeamWinModel}
+                className="sr-only peer"
+              />
+              <div className="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-600"></div>
             </div>
           </label>
         </div>
